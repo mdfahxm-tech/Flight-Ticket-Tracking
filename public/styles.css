@@ -24,7 +24,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -134,7 +135,8 @@ label {
   font-weight: 700;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -145,7 +147,8 @@ input {
   outline: none;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.13);
 }
@@ -404,6 +407,38 @@ input:focus {
   flex-wrap: wrap;
 }
 
+.offer-picker {
+  margin-bottom: 2px;
+}
+
+.flight-actions,
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.flight-actions button,
+.modal-actions button {
+  flex: 1 1 150px;
+}
+
+.leg-block {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.leg-block ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .small-button {
   min-height: 36px;
   padding: 0 12px;
@@ -450,6 +485,26 @@ input:focus {
   background: #ffffff;
   border-radius: 8px;
   box-shadow: var(--shadow);
+}
+
+.payment-modal {
+  width: min(560px, 100%);
+}
+
+.payment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 16px 0;
+}
+
+.demo-note {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  color: #6b3f08;
+  background: #faedcd;
+  border: 1px solid #eed28f;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 800;
 }
 
 .modal h3 {

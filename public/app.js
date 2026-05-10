@@ -3,7 +3,10 @@ const state = {
   user: JSON.parse(localStorage.getItem("flightTrackerUser") || "null"),
   authMode: "login",
   lastHitIds: new Set(JSON.parse(localStorage.getItem("flightTrackerHits") || "[]")),
-  pollTimer: null
+  pollTimer: null,
+  lastSearchInput: null,
+  lastOffers: [],
+  selectedOfferIndex: 0
 };
 
 const AIRPORTS = [
@@ -74,6 +77,20 @@ const alertsList = document.querySelector("#alertsList");
 const alertCount = document.querySelector("#alertCount");
 const lastCheck = document.querySelector("#lastCheck");
 const toast = document.querySelector("#toast");
+const alertModal = document.querySelector("#alertModal");
+const alertModalForm = document.querySelector("#alertModalForm");
+const alertModalText = document.querySelector("#alertModalText");
+const cancelAlertModal = document.querySelector("#cancelAlertModal");
+const detailsModal = document.querySelector("#detailsModal");
+const detailsModalText = document.querySelector("#detailsModalText");
+const closeDetailsModal = document.querySelector("#closeDetailsModal");
+const paymentModal = document.querySelector("#paymentModal");
+const paymentForm = document.querySelector("#paymentForm");
+const paymentSummary = document.querySelector("#paymentSummary");
+const cancelPayment = document.querySelector("#cancelPayment");
+const bookingModal = document.querySelector("#bookingModal");
+const bookingText = document.querySelector("#bookingText");
+const closeBookingModal = document.querySelector("#closeBookingModal");
 const hitModal = document.querySelector("#hitModal");
 const hitModalText = document.querySelector("#hitModalText");
 const closeModal = document.querySelector("#closeModal");
@@ -232,13 +249,12 @@ function renderShell() {
 function formInput() {
   const data = new FormData(flightForm);
   return {
-    origin: String(data.get("origin") || "").toUpperCase(),
-    destination: String(data.get("destination") || "").toUpperCase(),
+    origin: resolveAirportCode(data.get("origin")),
+    destination: resolveAirportCode(data.get("destination")),
     departureDate: data.get("departureDate"),
     returnDate: data.get("returnDate"),
     adults: Number(data.get("adults") || 1),
-    currency: "INR",
-    targetPrice: Number(data.get("targetPrice") || 0)
+    currency: "INR"
   };
 }
 
@@ -259,27 +275,138 @@ function segmentText(offer) {
   return `${first.from} to ${final.to} • ${stops ? `${stops} stop${stops > 1 ? "s" : ""}` : "Nonstop"} • ${first.carrier}${first.flightNumber}`;
 }
 
+function offerLabel(offer, index) {
+  return `Flight ${index + 1}: ${segmentText(offer)} - ${money(offer.price, offer.currency)}`;
+}
+
+function selectedOffer() {
+  return state.lastOffers[state.selectedOfferIndex] || null;
+}
+
+function offerDetailsHtml(offer) {
+  if (!offer) {
+    return `<div class="empty">Choose a flight first.</div>`;
+  }
+
+  const itineraries = offer.itineraries || [];
+  const legs = itineraries
+    .map((itinerary, legIndex) => {
+      const title = legIndex === 0 ? "Outbound" : "Return";
+      const segments = (itinerary.segments || [])
+        .map((segment) => {
+          return `<li>${segment.from} to ${segment.to} • ${segment.departAt || "Time unavailable"} • ${segment.carrier || ""}${segment.flightNumber || ""}</li>`;
+        })
+        .join("");
+
+      return `
+        <div class="leg-block">
+          <strong>${title} • ${itinerary.duration || "Duration unavailable"}</strong>
+          <ul>${segments || "<li>Segment details unavailable</li>"}</ul>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="card-top">
+      <div>
+        <div class="route">${segmentText(offer)}</div>
+        <div class="meta">${offer.oneWay ? "One-way" : "Round-trip"} • INR pricing</div>
+      </div>
+      <div class="price">${money(offer.price, offer.currency)}</div>
+    </div>
+    ${legs}
+  `;
+}
+
 function renderOffers(offers) {
+  state.lastOffers = offers;
+  state.selectedOfferIndex = 0;
+
   if (!offers.length) {
     resultsList.innerHTML = `<div class="empty">No offers found for that route.</div>`;
     return;
   }
 
-  resultsList.innerHTML = offers
-    .map(
-      (offer) => `
-        <article class="result-card">
-          <div class="card-top">
-            <div>
-              <div class="route">${segmentText(offer)}</div>
-              <div class="meta">${offer.itineraries?.[0]?.duration || "Duration unavailable"} • ${offer.seats || "Some"} seats</div>
-            </div>
-            <div class="price">${money(offer.price, offer.currency)}</div>
-          </div>
-        </article>
-      `
-    )
-    .join("");
+  resultsList.innerHTML = `
+    <label class="offer-picker">
+      Select flight
+      <select id="offerSelect">
+        ${offers.map((offer, index) => `<option value="${index}">${offerLabel(offer, index)}</option>`).join("")}
+      </select>
+    </label>
+    <article class="result-card" id="selectedOfferCard">
+      ${offerDetailsHtml(offers[0])}
+    </article>
+    <div class="flight-actions">
+      <button class="primary-button" type="button" data-result-action="buy">Buy</button>
+      <button class="secondary-button" type="button" data-result-action="details">View details</button>
+      <button class="ghost-button" type="button" data-result-action="alert">Target price alert</button>
+    </div>
+  `;
+}
+
+function updateSelectedOffer(index) {
+  state.selectedOfferIndex = Number(index || 0);
+  const card = document.querySelector("#selectedOfferCard");
+  if (card) {
+    card.innerHTML = offerDetailsHtml(selectedOffer());
+  }
+}
+
+function openAlertModal() {
+  const offer = selectedOffer();
+  if (!offer || !state.lastSearchInput) {
+    showToast("Choose a flight first.");
+    return;
+  }
+
+  alertModalText.textContent = `${state.lastSearchInput.origin} to ${state.lastSearchInput.destination} is currently ${money(offer.price, offer.currency)}. Enter the INR price you want to wait for.`;
+  alertModalForm.elements.targetPrice.value = offer.price ? Math.floor(offer.price * 0.9) : "";
+  alertModal.classList.remove("hidden");
+  alertModalForm.elements.targetPrice.focus();
+}
+
+function closeAlertModal() {
+  alertModal.classList.add("hidden");
+  alertModalForm.reset();
+}
+
+function openDetailsModal() {
+  const offer = selectedOffer();
+  if (!offer) {
+    showToast("Choose a flight first.");
+    return;
+  }
+
+  detailsModalText.innerHTML = offerDetailsHtml(offer);
+  detailsModal.classList.remove("hidden");
+}
+
+function openPaymentModal() {
+  const offer = selectedOffer();
+  if (!offer || !state.lastSearchInput) {
+    showToast("Choose a flight first.");
+    return;
+  }
+
+  paymentSummary.textContent = `${state.lastSearchInput.origin} to ${state.lastSearchInput.destination} • ${money(offer.price, offer.currency)} • Demo payment`;
+  paymentForm.elements.email.value = state.user?.email || "";
+  paymentModal.classList.remove("hidden");
+  paymentForm.elements.passengerName.focus();
+}
+
+function closePaymentModal() {
+  paymentModal.classList.add("hidden");
+  paymentForm.reset();
+}
+
+function cleanDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+function bookingReference() {
+  return `FTT-${Date.now().toString(36).toUpperCase().slice(-5)}-${Math.random().toString(36).toUpperCase().slice(2, 6)}`;
 }
 
 function alertMarkup(alert) {
@@ -405,13 +532,15 @@ notificationButton.addEventListener("click", async () => {
   showToast(permission === "granted" ? "Pop-up notifications are enabled." : "Notifications were not enabled.");
 });
 
-searchButton.addEventListener("click", async () => {
+flightForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
   flightMessage.textContent = "Searching live fares...";
   resultsList.innerHTML = "";
   try {
+    state.lastSearchInput = formInput();
     const payload = await api("/api/flights/search", {
       method: "POST",
-      body: JSON.stringify(formInput())
+      body: JSON.stringify(state.lastSearchInput)
     });
     renderOffers(payload.offers);
     flightMessage.textContent = "";
@@ -420,18 +549,113 @@ searchButton.addEventListener("click", async () => {
   }
 });
 
-flightForm.addEventListener("submit", async (event) => {
+resultsList.addEventListener("change", (event) => {
+  if (event.target.id === "offerSelect") {
+    updateSelectedOffer(event.target.value);
+  }
+});
+
+resultsList.addEventListener("click", (event) => {
+  const action = event.target.dataset.resultAction;
+  if (!action) {
+    return;
+  }
+
+  if (action === "buy") {
+    openPaymentModal();
+  }
+
+  if (action === "details") {
+    openDetailsModal();
+  }
+
+  if (action === "alert") {
+    openAlertModal();
+  }
+});
+
+alertModalForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  flightMessage.textContent = "";
+  const offer = selectedOffer();
+  const targetPrice = Number(new FormData(alertModalForm).get("targetPrice"));
+
+  if (!offer || !state.lastSearchInput) {
+    showToast("Search and choose a flight first.");
+    return;
+  }
+
   try {
     await api("/api/alerts", {
       method: "POST",
-      body: JSON.stringify(formInput())
+      body: JSON.stringify({ ...state.lastSearchInput, targetPrice })
     });
     showToast("Price alert saved.");
+    closeAlertModal();
     await loadAlerts();
   } catch (error) {
-    flightMessage.textContent = error.message;
+    showToast(error.message);
+  }
+});
+
+cancelAlertModal.addEventListener("click", closeAlertModal);
+alertModal.addEventListener("click", (event) => {
+  if (event.target === alertModal) {
+    closeAlertModal();
+  }
+});
+
+closeDetailsModal.addEventListener("click", () => detailsModal.classList.add("hidden"));
+detailsModal.addEventListener("click", (event) => {
+  if (event.target === detailsModal) {
+    detailsModal.classList.add("hidden");
+  }
+});
+
+paymentForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(paymentForm);
+  const offer = selectedOffer();
+  const cardNumber = cleanDigits(formData.get("cardNumber"));
+  const cvv = cleanDigits(formData.get("cvv"));
+  const expiry = String(formData.get("expiry") || "").trim();
+
+  if (!offer || !state.lastSearchInput) {
+    showToast("Choose a flight first.");
+    return;
+  }
+
+  if (cardNumber.length < 12 || cardNumber.length > 19) {
+    showToast("Enter a valid demo card number.");
+    return;
+  }
+
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) {
+    showToast("Use expiry format MM/YY.");
+    return;
+  }
+
+  if (cvv.length < 3) {
+    showToast("Enter a valid demo CVV.");
+    return;
+  }
+
+  const reference = bookingReference();
+  closePaymentModal();
+  bookingText.textContent = `Demo booking ${reference} confirmed for ${formData.get("passengerName")} on ${state.lastSearchInput.origin} to ${state.lastSearchInput.destination}. Amount: ${money(offer.price, offer.currency)}.`;
+  bookingModal.classList.remove("hidden");
+});
+
+cancelPayment.addEventListener("click", closePaymentModal);
+paymentModal.addEventListener("click", (event) => {
+  if (event.target === paymentModal) {
+    closePaymentModal();
+  }
+});
+
+closeBookingModal.addEventListener("click", () => bookingModal.classList.add("hidden"));
+bookingModal.addEventListener("click", (event) => {
+  if (event.target === bookingModal) {
+    bookingModal.classList.add("hidden");
   }
 });
 

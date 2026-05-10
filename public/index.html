@@ -12,7 +12,7 @@
         <div class="brand-block">
           <p class="eyebrow">Local flight alerts</p>
           <h1>Track ticket prices before they climb.</h1>
-          <p>Search real flight offers, save a target price, and get a pop-up when your route becomes affordable.</p>
+          <p>Search real flight offers, choose a flight, then buy, view details, or create a target price alert.</p>
         </div>
 
         <form class="auth-card" id="authForm">
@@ -69,11 +69,9 @@
               <label>Departure <input name="departureDate" type="date" required /></label>
               <label>Return <input name="returnDate" type="date" /></label>
               <label>Adults <input name="adults" type="number" min="1" max="9" value="1" required /></label>
-              <label class="wide">Target price in INR <input name="targetPrice" type="number" min="1" placeholder="25000" required /></label>
             </div>
             <div class="form-actions">
-              <button class="secondary-button" type="button" id="searchButton">Search flights</button>
-              <button class="primary-button" type="submit">Save alert</button>
+              <button class="primary-button" type="submit" id="searchButton">Search flights</button>
             </div>
             <p class="form-message" id="flightMessage"></p>
           </form>
@@ -99,7 +97,7 @@
           <div class="panel">
             <div class="panel-heading">
               <h3>Search Results</h3>
-              <p>Lowest fares from the API appear first.</p>
+              <p>Choose a flight, then select what you want to do next.</p>
             </div>
             <div class="list" id="resultsList"></div>
           </div>
@@ -116,6 +114,52 @@
     </main>
 
     <div class="toast hidden" id="toast"></div>
+    <div class="modal-backdrop hidden" id="alertModal">
+      <form class="modal" id="alertModalForm">
+        <h3>Set target price alert</h3>
+        <p id="alertModalText"></p>
+        <label>
+          Target price in INR
+          <input name="targetPrice" type="number" min="1" placeholder="25000" required />
+        </label>
+        <div class="modal-actions">
+          <button class="ghost-button" type="button" id="cancelAlertModal">Cancel</button>
+          <button class="primary-button" type="submit">Save alert</button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-backdrop hidden" id="detailsModal">
+      <div class="modal">
+        <h3>Flight details</h3>
+        <div id="detailsModalText"></div>
+        <button class="primary-button" type="button" id="closeDetailsModal">Close</button>
+      </div>
+    </div>
+    <div class="modal-backdrop hidden" id="paymentModal">
+      <form class="modal payment-modal" id="paymentForm">
+        <h3>Demo checkout</h3>
+        <p id="paymentSummary"></p>
+        <div class="field-grid payment-grid">
+          <label class="wide">Passenger name <input name="passengerName" placeholder="Passenger full name" required /></label>
+          <label class="wide">Email <input name="email" type="email" placeholder="ticket@example.com" required /></label>
+          <label class="wide">Test card number <input name="cardNumber" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" required /></label>
+          <label>Expiry <input name="expiry" maxlength="5" placeholder="12/30" required /></label>
+          <label>CVV <input name="cvv" inputmode="numeric" maxlength="4" placeholder="123" required /></label>
+        </div>
+        <div class="demo-note">Demo only. No real payment is processed.</div>
+        <div class="modal-actions">
+          <button class="ghost-button" type="button" id="cancelPayment">Cancel</button>
+          <button class="primary-button" type="submit">Pay demo amount</button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-backdrop hidden" id="bookingModal">
+      <div class="modal">
+        <h3>Booking confirmed</h3>
+        <p id="bookingText"></p>
+        <button class="primary-button" type="button" id="closeBookingModal">Done</button>
+      </div>
+    </div>
     <div class="modal-backdrop hidden" id="hitModal">
       <div class="modal">
         <h3>Target price hit</h3>
