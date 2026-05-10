@@ -1,0 +1,61 @@
+# Flight Ticket Tracker
+
+A local flight price tracker with:
+
+- User register/login
+- MongoDB storage for users and saved alerts
+- Real flight offer checks through the Ignav flight prices API
+- Browser pop-up/modal when a saved ticket route hits the target price
+
+## Setup
+
+1. Install MongoDB Community Server if it is not already running.
+2. Open MongoDB Compass and connect to:
+
+   ```text
+   mongodb://127.0.0.1:27017
+   ```
+
+3. Create a free Ignav account:
+
+   ```text
+   https://ignav.com/
+   ```
+
+4. Create a `.env` file in this folder by copying `.env.example`.
+5. Put your Ignav API key in `.env`.
+6. Install dependencies:
+
+   ```bash
+   npm.cmd install
+   ```
+
+   If PowerShell blocks `npm`, keep using `npm.cmd`.
+
+7. Start the website:
+
+   ```bash
+   npm.cmd run dev
+   ```
+
+8. Open:
+
+   ```text
+   http://localhost:3000
+   ```
+
+## Python helper
+
+You can run a quick local setup check with Python:
+
+```bash
+python scripts/check_setup.py
+```
+
+It checks that `.env` exists, the Ignav key is set, and MongoDB is reachable.
+
+## Notes
+
+- The app uses Ignav by default: `https://ignav.com/api`.
+- The page checks saved alerts every 60 seconds while it is open.
+- Click `Allow pop-ups` in the app to enable desktop notifications. The in-page modal will work even if desktop notifications are blocked.

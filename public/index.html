@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flight Ticket Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="auth-panel" id="authPanel">
+        <div class="brand-block">
+          <p class="eyebrow">Local flight alerts</p>
+          <h1>Track ticket prices before they climb.</h1>
+          <p>Search real flight offers, save a target price, and get a pop-up when your route becomes affordable.</p>
+        </div>
+
+        <form class="auth-card" id="authForm">
+          <div class="auth-switch">
+            <button type="button" class="active" id="showLogin">Login</button>
+            <button type="button" id="showRegister">Register</button>
+          </div>
+          <label id="nameWrap">
+            Name
+            <input name="name" autocomplete="name" placeholder="Your name" />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Password
+            <input name="password" type="password" autocomplete="current-password" placeholder="At least 6 characters" required />
+          </label>
+          <button class="primary-button" type="submit" id="authSubmit">Login</button>
+          <p class="form-message" id="authMessage"></p>
+        </form>
+      </section>
+
+      <section class="dashboard hidden" id="dashboard">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Flight Ticket Tracker</p>
+            <h2 id="welcomeTitle">Welcome</h2>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost-button" id="notificationButton" type="button">Allow pop-ups</button>
+            <button class="ghost-button" id="logoutButton" type="button">Logout</button>
+          </div>
+        </header>
+
+        <section class="tool-grid">
+          <form class="panel search-panel" id="flightForm">
+            <div class="panel-heading">
+              <h3>Search and Track</h3>
+              <p>Use airport codes like DEL, BOM, JFK, LHR.</p>
+            </div>
+            <div class="field-grid">
+              <label>From <input name="origin" maxlength="3" placeholder="DEL" required /></label>
+              <label>To <input name="destination" maxlength="3" placeholder="DXB" required /></label>
+              <label>Departure <input name="departureDate" type="date" required /></label>
+              <label>Return <input name="returnDate" type="date" /></label>
+              <label>Adults <input name="adults" type="number" min="1" max="9" value="1" required /></label>
+              <label>Currency <input name="currency" maxlength="3" value="USD" required /></label>
+              <label class="wide">Target price <input name="targetPrice" type="number" min="1" placeholder="350" required /></label>
+            </div>
+            <div class="form-actions">
+              <button class="secondary-button" type="button" id="searchButton">Search flights</button>
+              <button class="primary-button" type="submit">Save alert</button>
+            </div>
+            <p class="form-message" id="flightMessage"></p>
+          </form>
+
+          <aside class="panel status-panel">
+            <div class="panel-heading">
+              <h3>Price Watch</h3>
+              <p id="watchStatus">Checks run while this page is open.</p>
+            </div>
+            <button class="primary-button full" type="button" id="checkNowButton">Check saved alerts now</button>
+            <div class="mini-stat">
+              <span>Saved alerts</span>
+              <strong id="alertCount">0</strong>
+            </div>
+            <div class="mini-stat">
+              <span>Last check</span>
+              <strong id="lastCheck">Not yet</strong>
+            </div>
+          </aside>
+        </section>
+
+        <section class="content-grid">
+          <div class="panel">
+            <div class="panel-heading">
+              <h3>Search Results</h3>
+              <p>Lowest fares from the API appear first.</p>
+            </div>
+            <div class="list" id="resultsList"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-heading">
+              <h3>Your Alerts</h3>
+              <p>Targets are checked against live offers.</p>
+            </div>
+            <div class="list" id="alertsList"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast hidden" id="toast"></div>
+    <div class="modal-backdrop hidden" id="hitModal">
+      <div class="modal">
+        <h3>Target price hit</h3>
+        <p id="hitModalText"></p>
+        <button class="primary-button" type="button" id="closeModal">Nice</button>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
