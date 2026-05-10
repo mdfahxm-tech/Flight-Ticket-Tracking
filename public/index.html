@@ -137,26 +137,25 @@
     </div>
     <div class="modal-backdrop hidden" id="paymentModal">
       <form class="modal payment-modal" id="paymentForm">
-        <h3>Demo checkout</h3>
+        <h3>Payment</h3>
         <p id="paymentSummary"></p>
         <div class="field-grid payment-grid">
           <label class="wide">Passenger name <input name="passengerName" placeholder="Passenger full name" required /></label>
           <label class="wide">Email <input name="email" type="email" placeholder="ticket@example.com" required /></label>
-          <label class="wide">Test card number <input name="cardNumber" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" required /></label>
+          <label class="wide">Card number <input name="cardNumber" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" required /></label>
           <label>Expiry <input name="expiry" maxlength="5" placeholder="12/30" required /></label>
           <label>CVV <input name="cvv" inputmode="numeric" maxlength="4" placeholder="123" required /></label>
         </div>
-        <div class="demo-note">Demo only. No real payment is processed.</div>
         <div class="modal-actions">
           <button class="ghost-button" type="button" id="cancelPayment">Cancel</button>
-          <button class="primary-button" type="submit">Pay demo amount</button>
+          <button class="primary-button" type="submit">Pay now</button>
         </div>
       </form>
     </div>
     <div class="modal-backdrop hidden" id="bookingModal">
-      <div class="modal">
+      <div class="modal ticket-modal">
         <h3>Booking confirmed</h3>
-        <p id="bookingText"></p>
+        <div id="bookingText"></div>
         <button class="primary-button" type="button" id="closeBookingModal">Done</button>
       </div>
     </div>

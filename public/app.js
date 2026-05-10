@@ -319,6 +319,46 @@ function offerDetailsHtml(offer) {
   `;
 }
 
+function ticketDetailsHtml({ offer, passengerName, email, reference }) {
+  return `
+    <div class="ticket-card">
+      <div class="ticket-strip">
+        <span>Booking ID</span>
+        <strong>${reference}</strong>
+      </div>
+      <div class="ticket-grid">
+        <div>
+          <span>Passenger</span>
+          <strong>${passengerName}</strong>
+        </div>
+        <div>
+          <span>Email</span>
+          <strong>${email}</strong>
+        </div>
+        <div>
+          <span>Route</span>
+          <strong>${state.lastSearchInput.origin} to ${state.lastSearchInput.destination}</strong>
+        </div>
+        <div>
+          <span>Travel date</span>
+          <strong>${state.lastSearchInput.departureDate}${state.lastSearchInput.returnDate ? ` to ${state.lastSearchInput.returnDate}` : ""}</strong>
+        </div>
+        <div>
+          <span>Passengers</span>
+          <strong>${state.lastSearchInput.adults}</strong>
+        </div>
+        <div>
+          <span>Paid amount</span>
+          <strong>${money(offer.price, offer.currency)}</strong>
+        </div>
+      </div>
+      <div class="ticket-details">
+        ${offerDetailsHtml(offer)}
+      </div>
+    </div>
+  `;
+}
+
 function renderOffers(offers) {
   state.lastOffers = offers;
   state.selectedOfferIndex = 0;
@@ -390,7 +430,7 @@ function openPaymentModal() {
     return;
   }
 
-  paymentSummary.textContent = `${state.lastSearchInput.origin} to ${state.lastSearchInput.destination} • ${money(offer.price, offer.currency)} • Demo payment`;
+  paymentSummary.textContent = `${state.lastSearchInput.origin} to ${state.lastSearchInput.destination} • ${money(offer.price, offer.currency)}`;
   paymentForm.elements.email.value = state.user?.email || "";
   paymentModal.classList.remove("hidden");
   paymentForm.elements.passengerName.focus();
@@ -625,7 +665,7 @@ paymentForm.addEventListener("submit", (event) => {
   }
 
   if (cardNumber.length < 12 || cardNumber.length > 19) {
-    showToast("Enter a valid demo card number.");
+    showToast("Enter a valid card number.");
     return;
   }
 
@@ -635,13 +675,15 @@ paymentForm.addEventListener("submit", (event) => {
   }
 
   if (cvv.length < 3) {
-    showToast("Enter a valid demo CVV.");
+    showToast("Enter a valid CVV.");
     return;
   }
 
   const reference = bookingReference();
+  const passengerName = String(formData.get("passengerName") || "").trim();
+  const email = String(formData.get("email") || "").trim();
   closePaymentModal();
-  bookingText.textContent = `Demo booking ${reference} confirmed for ${formData.get("passengerName")} on ${state.lastSearchInput.origin} to ${state.lastSearchInput.destination}. Amount: ${money(offer.price, offer.currency)}.`;
+  bookingText.innerHTML = ticketDetailsHtml({ offer, passengerName, email, reference });
   bookingModal.classList.remove("hidden");
 });
 
