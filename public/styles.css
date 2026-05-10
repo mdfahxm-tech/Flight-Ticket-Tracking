@@ -126,6 +126,7 @@ h1 {
 }
 
 label {
+  position: relative;
   display: grid;
   gap: 7px;
   color: #33404a;
@@ -147,6 +148,60 @@ input {
 input:focus {
   border-color: var(--teal);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.13);
+}
+
+.airport-field {
+  z-index: 2;
+}
+
+.airport-field:focus-within {
+  z-index: 8;
+}
+
+.airport-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  overflow: auto;
+  max-height: 240px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(23, 32, 38, 0.16);
+}
+
+.airport-option {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  color: var(--ink);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+}
+
+.airport-option:hover,
+.airport-option:focus {
+  background: #edf7f5;
+  outline: none;
+}
+
+.airport-option strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.airport-option span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .primary-button {

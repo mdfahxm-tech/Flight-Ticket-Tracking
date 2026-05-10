@@ -6,6 +6,54 @@ const state = {
   pollTimer: null
 };
 
+const AIRPORTS = [
+  { code: "DEL", city: "Delhi", name: "Indira Gandhi International Airport", country: "India" },
+  { code: "DXB", city: "Dubai", name: "Dubai International Airport", country: "United Arab Emirates" },
+  { code: "DOH", city: "Doha", name: "Hamad International Airport", country: "Qatar" },
+  { code: "DAC", city: "Dhaka", name: "Hazrat Shahjalal International Airport", country: "Bangladesh" },
+  { code: "DPS", city: "Denpasar", name: "Ngurah Rai International Airport", country: "Indonesia" },
+  { code: "DFW", city: "Dallas", name: "Dallas Fort Worth International Airport", country: "United States" },
+  { code: "DEN", city: "Denver", name: "Denver International Airport", country: "United States" },
+  { code: "DTW", city: "Detroit", name: "Detroit Metropolitan Airport", country: "United States" },
+  { code: "DUB", city: "Dublin", name: "Dublin Airport", country: "Ireland" },
+  { code: "DUS", city: "Dusseldorf", name: "Dusseldorf Airport", country: "Germany" },
+  { code: "BOM", city: "Mumbai", name: "Chhatrapati Shivaji Maharaj International Airport", country: "India" },
+  { code: "BLR", city: "Bengaluru", name: "Kempegowda International Airport", country: "India" },
+  { code: "MAA", city: "Chennai", name: "Chennai International Airport", country: "India" },
+  { code: "HYD", city: "Hyderabad", name: "Rajiv Gandhi International Airport", country: "India" },
+  { code: "CCU", city: "Kolkata", name: "Netaji Subhas Chandra Bose International Airport", country: "India" },
+  { code: "COK", city: "Kochi", name: "Cochin International Airport", country: "India" },
+  { code: "GOI", city: "Goa", name: "Dabolim Airport", country: "India" },
+  { code: "AMD", city: "Ahmedabad", name: "Sardar Vallabhbhai Patel International Airport", country: "India" },
+  { code: "PNQ", city: "Pune", name: "Pune Airport", country: "India" },
+  { code: "JAI", city: "Jaipur", name: "Jaipur International Airport", country: "India" },
+  { code: "LHR", city: "London", name: "Heathrow Airport", country: "United Kingdom" },
+  { code: "LGW", city: "London", name: "Gatwick Airport", country: "United Kingdom" },
+  { code: "JFK", city: "New York", name: "John F. Kennedy International Airport", country: "United States" },
+  { code: "EWR", city: "Newark", name: "Newark Liberty International Airport", country: "United States" },
+  { code: "LAX", city: "Los Angeles", name: "Los Angeles International Airport", country: "United States" },
+  { code: "SFO", city: "San Francisco", name: "San Francisco International Airport", country: "United States" },
+  { code: "ORD", city: "Chicago", name: "O'Hare International Airport", country: "United States" },
+  { code: "ATL", city: "Atlanta", name: "Hartsfield-Jackson Atlanta International Airport", country: "United States" },
+  { code: "SIN", city: "Singapore", name: "Singapore Changi Airport", country: "Singapore" },
+  { code: "KUL", city: "Kuala Lumpur", name: "Kuala Lumpur International Airport", country: "Malaysia" },
+  { code: "BKK", city: "Bangkok", name: "Suvarnabhumi Airport", country: "Thailand" },
+  { code: "HKG", city: "Hong Kong", name: "Hong Kong International Airport", country: "Hong Kong" },
+  { code: "NRT", city: "Tokyo", name: "Narita International Airport", country: "Japan" },
+  { code: "HND", city: "Tokyo", name: "Haneda Airport", country: "Japan" },
+  { code: "SYD", city: "Sydney", name: "Sydney Kingsford Smith Airport", country: "Australia" },
+  { code: "MEL", city: "Melbourne", name: "Melbourne Airport", country: "Australia" },
+  { code: "CDG", city: "Paris", name: "Charles de Gaulle Airport", country: "France" },
+  { code: "FRA", city: "Frankfurt", name: "Frankfurt Airport", country: "Germany" },
+  { code: "AMS", city: "Amsterdam", name: "Amsterdam Airport Schiphol", country: "Netherlands" },
+  { code: "IST", city: "Istanbul", name: "Istanbul Airport", country: "Turkey" },
+  { code: "RUH", city: "Riyadh", name: "King Khalid International Airport", country: "Saudi Arabia" },
+  { code: "JED", city: "Jeddah", name: "King Abdulaziz International Airport", country: "Saudi Arabia" },
+  { code: "AUH", city: "Abu Dhabi", name: "Zayed International Airport", country: "United Arab Emirates" },
+  { code: "YYZ", city: "Toronto", name: "Toronto Pearson International Airport", country: "Canada" },
+  { code: "YVR", city: "Vancouver", name: "Vancouver International Airport", country: "Canada" }
+];
+
 const authPanel = document.querySelector("#authPanel");
 const dashboard = document.querySelector("#dashboard");
 const authForm = document.querySelector("#authForm");
@@ -43,6 +91,74 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.remove("hidden");
   window.setTimeout(() => toast.classList.add("hidden"), 3600);
+}
+
+function airportText(airport) {
+  return `${airport.code} ${airport.city} ${airport.name} ${airport.country}`.toLowerCase();
+}
+
+function airportStartsWith(airport, query) {
+  return [airport.code, airport.city, airport.name, airport.country].some((item) => item.toLowerCase().startsWith(query));
+}
+
+function airportMatches(airport, query) {
+  return airportStartsWith(airport, query) || airportText(airport).includes(query);
+}
+
+function airportButton(airport) {
+  return `
+    <button class="airport-option" type="button" data-code="${airport.code}">
+      <strong>${airport.code} - ${airport.city}</strong>
+      <span>${airport.name}, ${airport.country}</span>
+    </button>
+  `;
+}
+
+function setupAirportSuggesters() {
+  document.querySelectorAll("[data-airport-input]").forEach((input) => {
+    const list = input.parentElement.querySelector("[data-airport-suggestions]");
+
+    function renderSuggestions() {
+      const query = input.value.trim().toLowerCase();
+      if (!query) {
+        list.classList.add("hidden");
+        list.innerHTML = "";
+        return;
+      }
+
+      const matches = AIRPORTS.filter((airport) => airportMatches(airport, query)).sort((a, b) => {
+        const aStarts = airportStartsWith(a, query) ? 0 : 1;
+        const bStarts = airportStartsWith(b, query) ? 0 : 1;
+        return aStarts - bStarts || a.city.localeCompare(b.city);
+      });
+
+      if (!matches.length) {
+        list.innerHTML = `<div class="empty">No airport found. Use a 3-letter airport code.</div>`;
+        list.classList.remove("hidden");
+        return;
+      }
+
+      list.innerHTML = matches.slice(0, 8).map(airportButton).join("");
+      list.classList.remove("hidden");
+    }
+
+    input.addEventListener("input", renderSuggestions);
+    input.addEventListener("focus", renderSuggestions);
+    input.addEventListener("blur", () => {
+      window.setTimeout(() => list.classList.add("hidden"), 160);
+    });
+
+    list.addEventListener("click", (event) => {
+      const option = event.target.closest("[data-code]");
+      if (!option) {
+        return;
+      }
+
+      input.value = option.dataset.code;
+      list.classList.add("hidden");
+      input.focus();
+    });
+  });
 }
 
 function api(path, options = {}) {
@@ -340,4 +456,5 @@ hitModal.addEventListener("click", (event) => {
 });
 
 setAuthMode("login");
+setupAirportSuggesters();
 renderShell();

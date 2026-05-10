@@ -56,8 +56,16 @@
               <p>Use airport codes like DEL, BOM, JFK, LHR.</p>
             </div>
             <div class="field-grid">
-              <label>From <input name="origin" maxlength="3" placeholder="DEL" required /></label>
-              <label>To <input name="destination" maxlength="3" placeholder="DXB" required /></label>
+              <label class="airport-field">
+                From
+                <input name="origin" placeholder="Delhi or DEL" autocomplete="off" data-airport-input required />
+                <div class="airport-suggestions hidden" data-airport-suggestions></div>
+              </label>
+              <label class="airport-field">
+                To
+                <input name="destination" placeholder="Dubai or DXB" autocomplete="off" data-airport-input required />
+                <div class="airport-suggestions hidden" data-airport-suggestions></div>
+              </label>
               <label>Departure <input name="departureDate" type="date" required /></label>
               <label>Return <input name="returnDate" type="date" /></label>
               <label>Adults <input name="adults" type="number" min="1" max="9" value="1" required /></label>
