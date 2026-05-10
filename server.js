@@ -42,7 +42,7 @@ const alertSchema = new mongoose.Schema(
     departureDate: { type: String, required: true },
     returnDate: { type: String, default: "" },
     adults: { type: Number, default: 1, min: 1, max: 9 },
-    currency: { type: String, default: "USD", uppercase: true, trim: true, minlength: 3, maxlength: 3 },
+    currency: { type: String, default: "INR", uppercase: true, trim: true, minlength: 3, maxlength: 3 },
     targetPrice: { type: Number, required: true, min: 1 },
     lastPrice: { type: Number, default: null },
     lastCheckedAt: { type: Date, default: null },
@@ -86,7 +86,7 @@ function normalizeFlightInput(body) {
     departureDate: String(body.departureDate || "").trim(),
     returnDate: String(body.returnDate || "").trim(),
     adults: Number(body.adults || 1),
-    currency: String(body.currency || "USD").trim().toUpperCase(),
+    currency: "INR",
     targetPrice: Number(body.targetPrice || 0)
   };
 }
@@ -106,10 +106,6 @@ function validateFlightInput(input, includeTarget = false) {
 
   if (!Number.isInteger(input.adults) || input.adults < 1 || input.adults > 9) {
     return "Adults must be between 1 and 9.";
-  }
-
-  if (!/^[A-Z]{3}$/.test(input.currency)) {
-    return "Use a 3-letter currency code like USD or INR.";
   }
 
   if (includeTarget && (!Number.isFinite(input.targetPrice) || input.targetPrice <= 0)) {

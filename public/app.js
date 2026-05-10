@@ -105,6 +105,25 @@ function airportMatches(airport, query) {
   return airportStartsWith(airport, query) || airportText(airport).includes(query);
 }
 
+function resolveAirportCode(value) {
+  const text = String(value || "").trim();
+  const query = text.toLowerCase();
+  if (/^[a-z]{3}$/i.test(text)) {
+    return text.toUpperCase();
+  }
+
+  const exact = AIRPORTS.find((airport) => {
+    return [airport.city, airport.name, `${airport.code} - ${airport.city}`].some((item) => item.toLowerCase() === query);
+  });
+
+  if (exact) {
+    return exact.code;
+  }
+
+  const match = AIRPORTS.find((airport) => airportMatches(airport, query));
+  return match ? match.code : text.toUpperCase();
+}
+
 function airportButton(airport) {
   return `
     <button class="airport-option" type="button" data-code="${airport.code}">
@@ -144,16 +163,15 @@ function setupAirportSuggesters() {
 
     input.addEventListener("input", renderSuggestions);
     input.addEventListener("focus", renderSuggestions);
-    input.addEventListener("blur", () => {
-      window.setTimeout(() => list.classList.add("hidden"), 160);
-    });
+    input.addEventListener("blur", () => window.setTimeout(() => list.classList.add("hidden"), 220));
 
-    list.addEventListener("click", (event) => {
+    list.addEventListener("pointerdown", (event) => {
       const option = event.target.closest("[data-code]");
       if (!option) {
         return;
       }
 
+      event.preventDefault();
       input.value = option.dataset.code;
       list.classList.add("hidden");
       input.focus();
@@ -219,7 +237,7 @@ function formInput() {
     departureDate: data.get("departureDate"),
     returnDate: data.get("returnDate"),
     adults: Number(data.get("adults") || 1),
-    currency: String(data.get("currency") || "USD").toUpperCase(),
+    currency: "INR",
     targetPrice: Number(data.get("targetPrice") || 0)
   };
 }
