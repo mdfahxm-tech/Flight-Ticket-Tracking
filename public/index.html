@@ -44,6 +44,10 @@
             <h2 id="welcomeTitle">Welcome</h2>
           </div>
           <div class="topbar-actions">
+            <button class="booking-status hidden" id="bookingStatusButton" type="button">
+              <span>Booking status</span>
+              <strong id="bookingStatusText">No booking yet</strong>
+            </button>
             <button class="ghost-button" id="notificationButton" type="button">Allow pop-ups</button>
             <button class="ghost-button" id="logoutButton" type="button">Logout</button>
           </div>
@@ -153,10 +157,17 @@
       </form>
     </div>
     <div class="modal-backdrop hidden" id="bookingModal">
-      <div class="modal ticket-modal">
-        <h3>Booking confirmed</h3>
-        <div id="bookingText"></div>
+      <div class="modal">
+        <h3>Booking successful</h3>
+        <p>Your ticket is available in Booking status.</p>
         <button class="primary-button" type="button" id="closeBookingModal">Done</button>
+      </div>
+    </div>
+    <div class="modal-backdrop hidden" id="ticketModal">
+      <div class="modal ticket-modal">
+        <h3>Booked ticket</h3>
+        <div id="bookingText"></div>
+        <button class="primary-button" type="button" id="closeTicketModal">Close</button>
       </div>
     </div>
     <div class="modal-backdrop hidden" id="hitModal">

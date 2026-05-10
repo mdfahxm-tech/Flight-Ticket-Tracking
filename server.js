@@ -11,6 +11,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "local-dev-secret-change-me";
+const ADMIN_REPORT_KEY = process.env.ADMIN_REPORT_KEY || "local-report-key";
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/flight_ticket_tracker";
 const IGNAV_BASE_URL = process.env.IGNAV_BASE_URL || "https://ignav.com/api";
 
@@ -77,6 +78,14 @@ function requireAuth(req, res, next) {
   } catch (error) {
     return res.status(401).json({ message: "Your login expired. Please log in again." });
   }
+}
+
+function requireAdminReportKey(req, res, next) {
+  const key = req.headers["x-admin-key"];
+  if (!key || key !== ADMIN_REPORT_KEY) {
+    return res.status(401).json({ message: "Admin report key is not correct." });
+  }
+  return next();
 }
 
 function normalizeFlightInput(body) {
@@ -374,6 +383,53 @@ app.post("/api/alerts/check", requireAuth, async (req, res) => {
     return res.json({ results });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ message: error.message || "Could not check prices." });
+  }
+});
+
+app.get("/api/admin/tracking-report", requireAdminReportKey, async (req, res) => {
+  const alerts = await PriceAlert.find({})
+    .populate("userId", "name email")
+    .sort({ createdAt: -1 });
+
+  const rows = alerts.map((alert) => ({
+    id: alert._id.toString(),
+    userName: alert.userId?.name || "Unknown",
+    userEmail: alert.userId?.email || "",
+    origin: alert.origin,
+    destination: alert.destination,
+    departureDate: alert.departureDate,
+    returnDate: alert.returnDate,
+    adults: alert.adults,
+    currency: alert.currency,
+    targetPrice: alert.targetPrice,
+    lastPrice: alert.lastPrice,
+    targetStatus:
+      alert.lastPrice === null
+        ? "Not checked"
+        : alert.lastPrice <= alert.targetPrice
+          ? "Hit target"
+          : "Above target",
+    lastCheckedAt: alert.lastCheckedAt,
+    lastHitAt: alert.lastHitAt,
+    active: alert.active,
+    createdAt: alert.createdAt
+  }));
+
+  return res.json({ rows });
+});
+
+app.post("/api/admin/tracking-report/check-all", requireAdminReportKey, async (req, res) => {
+  try {
+    const alerts = await PriceAlert.find({ active: true }).sort({ createdAt: -1 });
+    const results = [];
+
+    for (const alert of alerts) {
+      results.push(await checkOneAlert(alert));
+    }
+
+    return res.json({ checked: results.length });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ message: error.message || "Could not check all tracked flights." });
   }
 });
 

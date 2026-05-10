@@ -68,6 +68,8 @@ const authSubmit = document.querySelector("#authSubmit");
 const welcomeTitle = document.querySelector("#welcomeTitle");
 const logoutButton = document.querySelector("#logoutButton");
 const notificationButton = document.querySelector("#notificationButton");
+const bookingStatusButton = document.querySelector("#bookingStatusButton");
+const bookingStatusText = document.querySelector("#bookingStatusText");
 const flightForm = document.querySelector("#flightForm");
 const flightMessage = document.querySelector("#flightMessage");
 const searchButton = document.querySelector("#searchButton");
@@ -91,6 +93,8 @@ const cancelPayment = document.querySelector("#cancelPayment");
 const bookingModal = document.querySelector("#bookingModal");
 const bookingText = document.querySelector("#bookingText");
 const closeBookingModal = document.querySelector("#closeBookingModal");
+const ticketModal = document.querySelector("#ticketModal");
+const closeTicketModal = document.querySelector("#closeTicketModal");
 const hitModal = document.querySelector("#hitModal");
 const hitModalText = document.querySelector("#hitModalText");
 const closeModal = document.querySelector("#closeModal");
@@ -449,6 +453,30 @@ function bookingReference() {
   return `FTT-${Date.now().toString(36).toUpperCase().slice(-5)}-${Math.random().toString(36).toUpperCase().slice(2, 6)}`;
 }
 
+function saveLatestTicket(ticketHtml, summary) {
+  localStorage.setItem("flightTrackerLatestTicket", ticketHtml);
+  localStorage.setItem("flightTrackerLatestTicketSummary", summary);
+  renderBookingStatus();
+}
+
+function renderBookingStatus() {
+  const ticketHtml = localStorage.getItem("flightTrackerLatestTicket") || "";
+  const summary = localStorage.getItem("flightTrackerLatestTicketSummary") || "";
+  bookingStatusButton.classList.toggle("hidden", !ticketHtml);
+  bookingStatusText.textContent = summary || "View ticket";
+}
+
+function openTicketModal() {
+  const ticketHtml = localStorage.getItem("flightTrackerLatestTicket") || "";
+  if (!ticketHtml) {
+    showToast("No booking yet.");
+    return;
+  }
+
+  bookingText.innerHTML = ticketHtml;
+  ticketModal.classList.remove("hidden");
+}
+
 function alertMarkup(alert) {
   const status = alert.active ? "Active" : "Paused";
   const hit = alert.lastPrice !== null && alert.lastPrice <= alert.targetPrice;
@@ -682,8 +710,10 @@ paymentForm.addEventListener("submit", (event) => {
   const reference = bookingReference();
   const passengerName = String(formData.get("passengerName") || "").trim();
   const email = String(formData.get("email") || "").trim();
+  const ticketHtml = ticketDetailsHtml({ offer, passengerName, email, reference });
+  const summary = `${reference} • ${state.lastSearchInput.origin}-${state.lastSearchInput.destination}`;
   closePaymentModal();
-  bookingText.innerHTML = ticketDetailsHtml({ offer, passengerName, email, reference });
+  saveLatestTicket(ticketHtml, summary);
   bookingModal.classList.remove("hidden");
 });
 
@@ -698,6 +728,14 @@ closeBookingModal.addEventListener("click", () => bookingModal.classList.add("hi
 bookingModal.addEventListener("click", (event) => {
   if (event.target === bookingModal) {
     bookingModal.classList.add("hidden");
+  }
+});
+
+bookingStatusButton.addEventListener("click", openTicketModal);
+closeTicketModal.addEventListener("click", () => ticketModal.classList.add("hidden"));
+ticketModal.addEventListener("click", (event) => {
+  if (event.target === ticketModal) {
+    ticketModal.classList.add("hidden");
   }
 });
 
@@ -741,4 +779,5 @@ hitModal.addEventListener("click", (event) => {
 
 setAuthMode("login");
 setupAirportSuggesters();
+renderBookingStatus();
 renderShell();
